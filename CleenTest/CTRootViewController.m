@@ -114,27 +114,40 @@ static NSInteger psize = 14;
         NSLog(@"%@",response[@"rows"]);
         NSMutableArray *rows =  [NSMutableArray arrayWithArray:[CTRootCellItem mj_objectArrayWithKeyValuesArray:response[@"rows"]]];
         
+        dispatch_group_t group = dispatch_group_create();
+        dispatch_queue_t queue = dispatch_queue_create("calulate", DISPATCH_QUEUE_CONCURRENT);
+        
         [rows enumerateObjectsUsingBlock:^(CTRootCellItem *item, NSUInteger idx, BOOL * _Nonnull stop) {
             NSLog(@"imageHref == %@,%zd",item.imageHref,item.imageHref.length);
             
             if (item.isEmpty) {
                 [rows removeObject:item];
             }
+            else
+            {
+                dispatch_group_enter(group);
+                dispatch_group_async(group, queue, ^{
+                    [item calculateFrames];
+                    dispatch_group_leave(group);
+                });
+            }
         }];
         
-        if (page == 1)
-        {
-            self.rows = rows;
-        }
-        else
-        {
-            NSMutableArray *datas = [NSMutableArray array];
-            [datas addObjectsFromArray:weakSelf.rows];
-            [datas addObjectsFromArray:rows];
-            self.rows = datas;
-        }
-        
-        [weakSelf.tableView reloadData];
+        dispatch_group_notify(group, dispatch_get_main_queue(), ^{
+            if (page == 1)
+            {
+                weakSelf.rows = rows;
+            }
+            else
+            {
+                NSMutableArray *datas = [NSMutableArray array];
+                [datas addObjectsFromArray:weakSelf.rows];
+                [datas addObjectsFromArray:rows];
+                weakSelf.rows = datas;
+            }
+            
+            [weakSelf.tableView reloadData];
+        });
     } failure:^(NSError *error) {
         page--;
         [weakSelf.tableView.mj_header endRefreshing];

@@ -30,4 +30,6 @@
 
 @property (nonatomic, assign) CGFloat CellHeight;
 
+- (void)calculateFrames;
+
 @end

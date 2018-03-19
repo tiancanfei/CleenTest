@@ -51,64 +51,70 @@
     return [UIColor blackColor];
 }
 
-- (CGRect)titleFrame
+- (void)calculateFrames
 {
-    if (self.title.length == 0) {
-        return CGRectZero;
-    }
+    [self calculateTitleFrame];
+    [self calculateDescFrame];
+    [self calculateImageFrame];
     
-    if (_titleFrame.size.height == 0) {
-        CGFloat titleX = kCTRootCellHorizontalMargin;
-        CGFloat titleY = kCTRootCellVerticalMargin;
-        CGFloat titleW = kScreenW - 2 * kCTRootCellHorizontalMargin;        
-        CGSize size = [self.title boundingRectWithSize:CGSizeMake(titleW, MAXFLOAT)
-                                    options:NSStringDrawingUsesLineFragmentOrigin
-                                 attributes:@{NSFontAttributeName:self.titleFont}
-                                    context:nil].size;
-        CGFloat titleH = size.height;
-        _titleFrame = CGRectMake(titleX, titleY, titleW, titleH);
-    }
-    return _titleFrame;
+    [self calculateCellHeight];
 }
 
-- (CGRect)descFrame
+- (void)calculateTitleFrame
 {
-    if (self.desc.length == 0) {
-        return CGRectMake(0, CGRectGetMaxY(self.titleFrame), 0, 0);
+    if (self.title.length == 0) {
+        self.titleFrame = CGRectZero;
     }
     
-    if (_descFrame.size.height == 0) {
+    if (self.titleFrame.size.height == 0) {
+        CGFloat titleX = kCTRootCellHorizontalMargin;
+        CGFloat titleY = kCTRootCellVerticalMargin;
+        CGFloat titleW = kScreenW - 2 * kCTRootCellHorizontalMargin;
+        CGSize size = [self.title boundingRectWithSize:CGSizeMake(titleW, MAXFLOAT)
+                                               options:NSStringDrawingUsesLineFragmentOrigin
+                                            attributes:@{NSFontAttributeName:self.titleFont}
+                                               context:nil].size;
+        CGFloat titleH = size.height;
+        self.titleFrame = CGRectMake(titleX, titleY, titleW, titleH);
+    }
+}
+
+- (void)calculateDescFrame
+{
+    if (self.desc.length == 0) {
+        self.descFrame = CGRectMake(0, CGRectGetMaxY(self.titleFrame), 0, 0);
+    }
+    
+    if (self.descFrame.size.height == 0) {
         CGFloat descW = self.imageHref.length == 0 ? (kScreenW - 2 * kCTRootCellHorizontalMargin) : (kScreenW - 2 * kCTRootCellHorizontalMargin - kCTRootCellHorizontalPadding - kCTRootCellImageWidth);
         CGFloat descX = kCTRootCellHorizontalMargin;
         CGFloat descY = CGRectGetMaxY(self.titleFrame) + (self.titleFrame.size.height == 0 ? kCTRootCellHorizontalMargin : kCTRootCellHorizontalPadding);
         CGSize size = [self.desc boundingRectWithSize:CGSizeMake(descW, MAXFLOAT)
-                                               options:NSStringDrawingUsesLineFragmentOrigin
-                                            attributes:@{NSFontAttributeName:self.descFont}
-                                               context:nil].size;
+                                              options:NSStringDrawingUsesLineFragmentOrigin
+                                           attributes:@{NSFontAttributeName:self.descFont}
+                                              context:nil].size;
         CGFloat descH = size.height;
-        _descFrame = CGRectMake(descX, descY, descW, descH);
+        self.descFrame = CGRectMake(descX, descY, descW, descH);
     }
-    return _descFrame;
 }
 
-- (CGRect)imageFrame
+- (void)calculateImageFrame
 {
     if (self.imageHref.length == 0) {
-        return CGRectZero;
+        self.imageFrame = CGRectZero;
     }
     
-    if (_imageFrame.size.height == 0) {
+    if (self.imageFrame.size.height == 0) {
         CGFloat imageW = kCTRootCellImageWidth;
         CGFloat imageX = kScreenW - kCTRootCellHorizontalMargin - imageW;
         CGFloat imageY = CGRectGetMinY(self.descFrame);
         CGFloat imageH = kCTRootCellImageWidth;
-        _imageFrame = CGRectMake(imageX, imageY, imageW, imageH);
+        self.imageFrame = CGRectMake(imageX, imageY, imageW, imageH);
     }
-    
-    return _imageFrame;
+
 }
 
-- (CGFloat)CellHeight
+- (void)calculateCellHeight
 {
     CGFloat maxYOfDesc = CGRectGetMaxY(self.descFrame);
     CGFloat maxYOfImage = CGRectGetMaxY(self.imageFrame);
@@ -117,7 +123,7 @@
     CGFloat maxY = maxYOfDesc > maxYOfImage ? maxYOfDesc : maxYOfImage;
     maxY = maxY > maxYOfTitle ? maxY : maxYOfTitle;
     
-    return maxY + kCTRootCellVerticalMargin;
+    self.CellHeight = maxY + kCTRootCellVerticalMargin;
 }
 
 @end
